@@ -1,2 +1,33 @@
-The documentation is left as an exercise to the reader.
+NOMADLAD provides Python interface to the blackbox optimization software 
+NOMAD (version 4) available from https://github.com/bbopt/nomad repository.
+
+Prerequisites
+
+  - Python 3 (tested with version 3.10.1)
+  - Boost.Python (tested with version 1.78)
+  - Successfully compiled and installed NOMAD (tested with version 4.1.0) 
+  - GCC release that supports at least C++14 (tested with version 11.1.0)
+  - Exported the NOMAD_HOME environment variable
+
+Installation
+
+  - Assuming the prerequisites are satisfied (remember to export NOMAD_HOME)
+    it is possible to install (build) the package with Pip. 
+  - In particular to install the (tagged) release v0.4.5 just execute
+
+    pip install --user --upgrade \
+      git+https://github.com/jan-provaznik/nomadlad.git@v0.4.5
+
+Notes
+
+  - Please note that the module links against the nomadEval, nomadAlgos and
+    nomadUtils libraries. 
+  - The library look-up paths are compiled into the module and set to
+    $NOMAD_HOME/build/release/lib. 
+  - Should you decide to move the NOMAD installation elsewhere, you must
+    rebuild this module.
+
+Documentation
+
+  The documentation is left as an exercise to the reader.
 
