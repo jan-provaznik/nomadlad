@@ -1,0 +1,38 @@
+                      Example: a simple blackbox function
+
+Problem statement
+
+  minimize
+    sqrt((x - 1) ** 2 + (y - 1) ** 2)
+  subject to
+    sqrt(x ** 2 + y ** 2) >= 2
+  with (x, y) bound to
+    0 < x < 5
+    0 < y < 5
+
+Analytic solution
+
+  Using the method of Lagrange multipliers the location of the minimum is
+  revealed at (sqrt(2), sqrt(2)).
+
+Blackbox formulation compatible with NOMAD
+
+  In NOMAD positive constraint functions violate the constraints they
+  represent. We therefore define the blackbox as follows.
+
+  - Objective  function: f(w) = numpy.linalg.norm(w - 1, 2)
+  - Constraint function: c(w) = 2 - numpy.linalg.norm(w, 2)
+
+Parametrization of NOMAD
+
+  We use the standard parameters. The following are of particular interest.
+
+  - The MAX_BB_EVAL sets the evaluation budget.
+  - The BB_MAX_BLOCK_SIZE sets the maximal size of evaluation blocks.
+  - The BB_OUTPUT_TYPE determines the output format of the blackbox evaluator.
+
+Notes
+
+  In this example the block is evaluated in parallel using a pool of local
+  processes.
+
