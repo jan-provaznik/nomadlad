@@ -23,11 +23,11 @@ namespace bnp = boost::python::numpy;
 
 // Aliases for NOMAD (related) types.
 
-using eval_block_t = NOMAD::Block;
-using eval_point_t = NOMAD::EvalPoint;
-using eval_float_t = NOMAD::Double;
-using eval_state_t = std::vector<bool>;
-using eval_param_t = std::shared_ptr<NOMAD::EvalParameters>;
+using nomad_eval_block_t = NOMAD::Block;
+using nomad_eval_point_t = NOMAD::EvalPoint;
+using nomad_eval_float_t = NOMAD::Double;
+using nomad_eval_state_t = std::vector<bool>;
+using nomad_eval_param_t = std::shared_ptr<NOMAD::EvalParameters>;
 
 // Forward declarations
 //
@@ -38,36 +38,36 @@ struct nomad_block_evaluator;
 
 bnp::ndarray 
 make_ndarray_from_point (
-  const eval_point_t & point);
+  const nomad_eval_point_t & point);
 
 // NOMAD::Block conversion
 
 bpy::list 
 make_ndarray_list_from_block (
-  const eval_block_t & block, 
+  const nomad_eval_block_t & block, 
   size_t bsize);
 
 // NOMAD::EvalPoint evaluation data (objective, point) conversion
 
 bpy::object 
 make_solution_from_point (
-  const eval_point_t & point);
+  const nomad_eval_point_t & point);
 
 // NOMAD::EvalPoint evaluation data (objective, point) extraction
 
 bpy::object 
 make_optimal_solution_only (
-  const std::vector<eval_point_t> & points);
+  const std::vector<nomad_eval_point_t> & points);
 
 bpy::list 
 make_optimal_solution_list (
-  const std::vector<eval_point_t> & points);
+  const std::vector<nomad_eval_point_t> & points);
 
 // Utility: Convert NOMAD::EvalPoint into numpy.ndarray vector.
 
 bnp::ndarray 
 make_ndarray_from_point (
-  const eval_point_t & point
+  const nomad_eval_point_t & point
 ) {
   // Honestly the interface of NOMAD::EvalPoint, 
   // resp. that of NOMAD::ArrayOfDouble, leaves a terrible after taste.
@@ -99,7 +99,7 @@ make_ndarray_from_point (
 
 bpy::list 
 make_ndarray_list_from_block (
-  const eval_block_t & block, 
+  const nomad_eval_block_t & block, 
   size_t bsize
 ) {
   bpy::list list;
@@ -114,7 +114,7 @@ make_ndarray_list_from_block (
 
 bpy::object 
 make_solution_from_point (
-  const eval_point_t & point
+  const nomad_eval_point_t & point
 ) {
   auto value = point.getEval(NOMAD::EvalType::BB)->getF().todouble();
   auto array = make_ndarray_from_point(point);
@@ -128,7 +128,7 @@ make_solution_from_point (
 
 bpy::object 
 make_optimal_solution_only (
-  const std::vector<eval_point_t> & points
+  const std::vector<nomad_eval_point_t> & points
 ) {
   if (points.empty())
     return bpy::object();
@@ -140,7 +140,7 @@ make_optimal_solution_only (
 
 bpy::list 
 make_optimal_solution_list (
-  const std::vector<eval_point_t> & points
+  const std::vector<nomad_eval_point_t> & points
 ) {
   bpy::list list;
   for (const auto & point : points) {
@@ -158,7 +158,7 @@ make_optimal_solution_list (
 
 struct nomad_block_evaluator : public NOMAD::Evaluator {
 
-  nomad_block_evaluator (bpy::object callback, const eval_param_t & params) : 
+  nomad_block_evaluator (bpy::object callback, const nomad_eval_param_t & params) : 
     NOMAD::Evaluator(params), $callback(callback) {
   }
 
@@ -171,11 +171,11 @@ struct nomad_block_evaluator : public NOMAD::Evaluator {
   // The basic idea would be to create a list of numpy.ndarray vectors 
   // representing the points.
 
-  eval_state_t 
+  nomad_eval_state_t 
   eval_block (
-    eval_block_t & block, 
-    const eval_float_t & hmax, 
-    eval_state_t & include
+    nomad_eval_block_t & block, 
+    const nomad_eval_float_t & hmax, 
+    nomad_eval_state_t & include
   ) const override {
 
     size_t bsize = block.size();
@@ -183,7 +183,7 @@ struct nomad_block_evaluator : public NOMAD::Evaluator {
     // Nomad::Evaluator::eval_block returns a list of indicators 
     // whether the individual evaluations were successful.
 
-    eval_state_t success(bsize);
+    nomad_eval_state_t success(bsize);
 
     // Nomad::Evaluator::eval_block modifies a list of indicators 
     // whether the individual evaluations are to be included in optimization.
@@ -361,7 +361,7 @@ nomad_minimize_wrapper (
   // only way to retrieve the result of the optimization.
   
   size_t best_feasible_count, best_infeasible_count;
-  std::vector<eval_point_t> best_feasible_list, best_infeasible_list;
+  std::vector<nomad_eval_point_t> best_feasible_list, best_infeasible_list;
 
   // The NOMAD::CacheBase holds information about each and every blackbox
   // evaluation. We can ask it to find the best (in)feasible evaluation.

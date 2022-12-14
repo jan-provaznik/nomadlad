@@ -8,26 +8,27 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.4.5'
+VERSION = '0.4.6'
 
 if not ('NOMAD_HOME' in os.environ):
     print('The $NOMAD_HOME environment variable is not set.')
-    print('Please set it according to the official NOMAD installation guide https://nomad-4-user-guide.readthedocs.io/en/latest/Installation.html')
+    print('Please set it according to the official NOMAD installation guide.')
+    print('https://nomad-4-user-guide.readthedocs.io/en/latest/Installation.html')
     sys.exit(1)
 
 NOMAD_HOME = os.environ['NOMAD_HOME']
 
 if not os.path.isdir(NOMAD_HOME):
-    print('The $NOMAD_HOME environment variable is set to "{}", good job.'.format(NOMAD_HOME))
-    print('Sadly it does not exist.'.format(NOMAD_HOME))
+    print('The $NOMAD_HOME environment variable is set to "{}".'.format(NOMAD_HOME))
+    print('However, it does not exist.'.format(NOMAD_HOME))
     sys.exit(1)
 
 BUILD_PATH = 'build/release'
 NOMAD_PATH = os.path.join(NOMAD_HOME, BUILD_PATH)
 
 if not os.path.isdir(NOMAD_PATH):
-    print('The $NOMAD_HOME environment variable is set to "{}" and it exists, good job'.format(NOMAD_HOME))
-    print('Sadly it looks like the library is not compiled.')
+    print('The $NOMAD_HOME environment variable is set to "{}" and it exists.'.format(NOMAD_HOME))
+    print('However, it looks like the library is not compiled.')
     print('We expect "{}" to exist.'.format(NOMAD_PATH))
     sys.exit(1)
 
@@ -35,7 +36,9 @@ NOMAD_PATH_LIB = os.path.join(NOMAD_PATH, 'lib')
 NOMAD_PATH_INC = os.path.join(NOMAD_PATH, 'include')
 
 # We use static paths to NOMAD libraries.
-# Useful since NOMAD will most probably be installed someplace in /opt.
+#
+# Alternatively one could provide appropriate configuration to ld.so.conf and
+# have the operating system handle it on its own.
 
 nomadlad = setuptools.Extension(
     name = 'nomadlad',
