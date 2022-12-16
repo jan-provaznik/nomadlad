@@ -278,7 +278,7 @@ struct nomad_block_evaluator : public NOMAD::Evaluator {
 //
 //  Returns a tuple (termination_flag, eval_count, best_feasible, best_infeasible).
 //
-//  (1) termination_flag determines the exit condition of the solver
+//  (1) termination_success determines the exit condition of the solver
 //  (2) eval_count determines the number of blackbox evaluations
 //  (3) best_feasible is either (best_value, best_point) tuple (if multiple = 0),
 //      a list of these tuples (if multiple = 1) or None if there was no feasible
@@ -336,11 +336,11 @@ nomad_minimize_wrapper (
 
   // Begin the optimization process.
   
-  int engine_termination_status = 0;
+  bool engine_termination_success = false;
 
   try {
     engine->start();
-    engine_termination_status = engine->run();
+    engine_termination_success = engine->run();
     engine->end();
   }
   catch (...) {
@@ -411,7 +411,7 @@ nomad_minimize_wrapper (
   //
 
   return bpy::make_tuple(
-    engine_termination_status, 
+    engine_termination_success, 
     eval_count, 
     best_feasible_solution, 
     best_infeasible_solution);
