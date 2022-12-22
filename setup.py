@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# 2021 - 2022 Jan Provaznik (jan@provaznik.pro)
+# 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
 #
 # Let's see how poorly this goes.
 
@@ -8,7 +8,7 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.4.6'
+VERSION = '0.5.0'
 
 if not ('NOMAD_HOME' in os.environ):
     print('The $NOMAD_HOME environment variable is not set.')
@@ -28,7 +28,7 @@ NOMAD_PATH = os.path.join(NOMAD_HOME, BUILD_PATH)
 
 if not os.path.isdir(NOMAD_PATH):
     print('The $NOMAD_HOME environment variable is set to "{}" and it exists.'.format(NOMAD_HOME))
-    print('However, it looks like the library is not compiled.')
+    print('However, it looks like the library is not compiled properly.')
     print('We expect "{}" to exist.'.format(NOMAD_PATH))
     sys.exit(1)
 
@@ -40,9 +40,9 @@ NOMAD_PATH_INC = os.path.join(NOMAD_PATH, 'include')
 # Alternatively one could provide appropriate configuration to ld.so.conf and
 # have the operating system handle it on its own.
 
-nomadlad = setuptools.Extension(
-    name = 'nomadlad',
-    sources = [ 'nomadlad/nomadlad.cxx' ],
+nomadlad_bridge = setuptools.Extension(
+    name = 'nomadlad._bridge',
+    sources = [ 'nomadlad/_bridge/nomadlad.cxx' ],
     libraries = [ 'boost_python3', 'boost_numpy3', 'nomadAlgos', 'nomadUtils', 'nomadEval' ],
     library_dirs = [ NOMAD_PATH_LIB ],
     include_dirs = [ NOMAD_PATH_INC ],
@@ -57,11 +57,12 @@ nomadlad = setuptools.Extension(
 setuptools.setup(
     name = 'nomadlad',
     version = VERSION,
-    description = 'Basic interface for NOMAD 4.1.0 blackbox optimization software.',
+    description = 'Basic interface for NOMAD 4.3.0 blackbox optimization software.',
     author = 'Jan Provaznik',
     author_email = 'jan@provaznik.pro',
     url = 'https://provaznik.pro/nomadlad',
     license = 'LGPL',
-    ext_modules = [ nomadlad ]
+    ext_modules = [ nomadlad_bridge ],
+    packages = [ 'nomadlad' ]
 )
 

@@ -1,4 +1,4 @@
-/* 2021 - 2022 Jan Provaznik (jan@provaznik.pro)
+/* 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
  *
  * Do you know that feeling when you spend an exorbitant amount of time
  * building a better alternative only to end up with a considerably worse
@@ -32,7 +32,7 @@ using nomad_eval_param_t = std::shared_ptr<NOMAD::EvalParameters>;
 // Forward declarations
 //
 
-struct nomad_block_evaluator;
+struct proxy_block_evaluator;
 
 // NOMAD::EvalPoint conversion
 
@@ -156,13 +156,13 @@ make_optimal_solution_list (
 // This function then passes the requested points of interest to the Python 
 // callback which returns the corresponding blackbox output.
 
-struct nomad_block_evaluator : public NOMAD::Evaluator {
+struct proxy_block_evaluator : public NOMAD::Evaluator {
 
-  nomad_block_evaluator (bpy::object callback, const nomad_eval_param_t & params) : 
-    NOMAD::Evaluator(params), $callback(callback) {
+  proxy_block_evaluator (bpy::object callback, const nomad_eval_param_t & params) : 
+    NOMAD::Evaluator(params, NOMAD::EvalType::BB), $callback(callback) {
   }
 
-  virtual ~ nomad_block_evaluator () {
+  virtual ~ proxy_block_evaluator () {
   }
 
   // As per https://github.com/bbopt/nomad/blob/master/src/Eval/EvalPoint.hpp
@@ -276,7 +276,7 @@ struct nomad_block_evaluator : public NOMAD::Evaluator {
 //      Ir determines whether multiple equally good solutions should be returned,
 //      defaults to false: only the first best solution is returned.
 //
-//  Returns a tuple (termination_flag, eval_count, best_feasible, best_infeasible).
+//  Returns a tuple (termination_success, eval_count, best_feasible, best_infeasible).
 //
 //  (1) termination_success determines the exit condition of the solver
 //  (2) eval_count determines the number of blackbox evaluations
@@ -292,18 +292,13 @@ nomad_minimize_wrapper (
   bool multiple
 ) {
 
-  // Despite the claims made about exceptions for unknown paramerers in
-  // https://github.com/bbopt/nomad/blob/master/src/Param/AllParameters.hpp
-  // no exception is thrown by readParamLine.
-  // 
-  // Consider reporting this at their GitHub. 
-  // It has a potential to complicate matters while diagnosing improper setup.
+  // Configuration of the optimizer engine.
   //
-  // Furthermore the exceptions (NOMAD::Exception) due to invalid parameter
-  // values are gobbled within Parameter::readParamLine code. Instead a warning
-  // is printed out on the standard error stream.
+
+  // The handling of NOMAD parameters has changed in version 4.3 of NOMAD. It
+  // is now necessary to validate parameters after readParamLine calls.
   //
-  // Why, just why?!
+  // https://github.com/bbopt/nomad/issues/110
 
   auto params = std::make_shared<NOMAD::AllParameters>();
 
@@ -323,9 +318,19 @@ nomad_minimize_wrapper (
 
   params->readParamLine("NB_THREADS_OPENMP 1");
 
+  // Parameters have to be checked. 
+  // @todo We just re-throw the exception if it happens. 
+
+  try {
+    params->checkAndComply();
+  }
+  catch (...) {
+    throw;
+  }
+
   // Blackbox block-evaluator
   auto evalopt = params->getEvalParams();
-  auto evalfun = std::make_shared<nomad_block_evaluator>(callback, evalopt);
+  auto evalfun = std::make_shared<proxy_block_evaluator>(callback, evalopt);
 
   // The optimization engine Nomad::MainStep
   auto engine = std::make_unique<NOMAD::MainStep>();
@@ -417,19 +422,9 @@ nomad_minimize_wrapper (
     best_infeasible_solution);
 }
 
-// Wrapper: Python interface for the optimization engine. 
-
-bpy::object 
-nomad_minimize_wrapper_single (
-  bpy::object callback, 
-  bpy::object options
-) {
-  return nomad_minimize_wrapper(callback, options, false);
-}
-
 // Exports!
 
-BOOST_PYTHON_MODULE (nomadlad) {
+BOOST_PYTHON_MODULE (_bridge) {
   
   // As per the documentation, 
   // the boost::python::numpy environment must be initialized.
@@ -437,7 +432,6 @@ BOOST_PYTHON_MODULE (nomadlad) {
 
   // :)
   bpy::def("minimize", nomad_minimize_wrapper);
-  bpy::def("minimize", nomad_minimize_wrapper_single);
 
   #ifdef NOMADLAD_VERSION
   bpy::scope().attr("version") = std::string(NOMADLAD_VERSION);

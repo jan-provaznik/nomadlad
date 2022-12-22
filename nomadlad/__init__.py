@@ -1,0 +1,59 @@
+#!/bin/env python
+#
+# 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
+#
+# Interface for NOMAD, the blackbox optimization software.
+
+def minimize (evaluator, configuration, multiple = 0):
+    '''
+    Find global minimum using NOMAD blackbox optimizer.
+
+    Parameters
+    ----------
+    evaluator : callable
+        The blackbox evaluator function. 
+
+        It must accept a numpy.ndarray payload of points where the objective
+        and constraint functions of the blackbox should be evaluated. 
+
+        It must return a list of (success, include, outcome) triplets. 
+        Their elements indicate whether the blackbox evaluation at a particular
+        point was successful, whether the evaluation should be included in the
+        optimization and the actual outcome of the evaluation. 
+
+        (1) success must be boolean-convertible (bool, int),
+        (2) include must be boolean-convertible (bool, int),
+        (3) outcome must be string-convertible  (str).
+
+        The outcome string must conform to the BB_OUTPUT_TYPE configuration
+        directive.
+
+    configuration : list of strings
+        A list configuration directives to be passed to the optimizer. See
+        NOMAD documentation for complete list.
+
+        Notable parameters include X0, LOWER_BOUND, UPPER_BOUND,
+        BB_OUTPUT_TYPE, BB_MAX_BLOCK_SIZE, and MAX_BB_EVAL.
+
+    multiple : bool
+        Indication whether multiple results should be returned in the case when
+        multiple equally good solutions are found.
+
+    Returns
+    -------
+    Returns a quadruple with the result.
+
+    (1) termination_success : bool
+        determines the exit condition of the solver
+    (2) eval_count : int
+        determines the number of blackbox evaluations
+    (3) best_feasible is 
+        - either (best_value, best_point) tuple (if multiple = 0),
+        - a list of these tuples (if multiple = 1) or 
+        - None if there was no feasible solution found.
+    (4) best_infeasible behaves like best_feasible
+    '''
+
+    from ._bridge import minimize as _minimize
+    return _minimize(evaluator, configuration, multiple)
+

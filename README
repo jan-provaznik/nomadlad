@@ -3,20 +3,20 @@ NOMAD (version 4) available from https://github.com/bbopt/nomad repository.
 
 Prerequisites
 
-  - Python 3 (tested with version 3.10.1)
-  - Boost.Python (tested with version 1.78)
-  - Successfully compiled and installed NOMAD (tested with version 4.1.0) 
-  - GCC release that supports at least C++14 (tested with version 11.1.0)
+  - Python 3 (tested with version 3.10.8)
+  - Boost.Python (tested with version 1.80)
+  - Successfully compiled and installed NOMAD (tested with version 4.3.0) 
+  - GCC release that supports at least C++17 (tested with version 12.2.0)
   - Exported the NOMAD_HOME environment variable
 
 Installation
 
   - Assuming the prerequisites are satisfied (remember to export NOMAD_HOME)
     it is possible to install (build) the package with Pip. 
-  - In particular to install the (tagged) release v0.4.5 just execute
+  - In particular to install the (tagged) release v0.5.0 just execute
 
     pip install --user --upgrade \
-      git+https://github.com/jan-provaznik/nomadlad.git@v0.4.5
+      git+https://github.com/jan-provaznik/nomadlad.git@v0.5.0
 
 Notes
 
