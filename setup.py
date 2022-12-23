@@ -8,7 +8,7 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.5.0'
+VERSION = '0.5.1'
 
 if not ('NOMAD_HOME' in os.environ):
     print('The $NOMAD_HOME environment variable is not set.')
@@ -57,7 +57,7 @@ nomadlad_bridge = setuptools.Extension(
 setuptools.setup(
     name = 'nomadlad',
     version = VERSION,
-    description = 'Basic interface for NOMAD 4.3.0 blackbox optimization software.',
+    description = 'Basic interface for NOMAD 4.3.1 blackbox optimization software.',
     author = 'Jan Provaznik',
     author_email = 'jan@provaznik.pro',
     url = 'https://provaznik.pro/nomadlad',
