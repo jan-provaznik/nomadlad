@@ -1,29 +1,27 @@
 NOMADLAD provides Python interface to the blackbox optimization software 
 NOMAD (version 4) available from https://github.com/bbopt/nomad repository.
 
-Prerequisites
+Installation
+
+  Starting with the release 1.0.0, the latest version of the package is
+  available from PyPi repository.
+
+    pip install nomadlad
+
+Acknowledgements
+
+  This package is an alternative to the PyNomadBBO package interfacing the
+  blackbox optimization software NOMAD.
+
+
+Building (Prerequisites)
 
   - Python 3 (tested with version 3.12.4)
-  - Boost.Python (tested with version 1.83)
   - Compiled NOMAD with static libraries (tested with version 4.4.0) 
   - GCC release that supports at least C++17 (tested with version 14.1.1)
   - Exported the NOMAD_PATH environment variable
 
-Installation
-
-  - Assuming the prerequisites are satisfied (remember to export NOMAD_PATH)
-    it is possible to install (build) the package with Pip. 
-  - In particular to install the (tagged) release v0.9.0 just execute
-
-    pip install --user --upgrade \
-      git+https://github.com/jan-provaznik/nomadlad.git@v0.9.0
-
-Notes
-
-  - Please note that the module requires the nomadStatic and sgtelibStatic
-    libraries provided with NOMAD v4.4.x
-
-Notes on minimal build of NOMAD 
+Building (A minimal build of NOMAD)
 
   This is a considerably condensed version of the official installation guide
   adapted to the purpose of manually building this module.
@@ -41,9 +39,13 @@ Notes on minimal build of NOMAD
 
     export NOMAD_PATH=$(pwd)
 
-  (Step 3) Prepare and build NOMAD.
+  (Step 3) Prepare and build the core NOMAD library.
 
-    cmake -S . -B build -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DTEST_OPENMP=OFF
+    cmake -S . -B build \
+      -DBUILD_INTERFACE_PYTHON=ON \
+      -DBUILD_EXAMPLES=OFF \
+      -DTEST_OPENMP=OFF
+
     cmake --build build --config Release --clean-first --target nomadStatic --parallel
 
     Please note that you can set --parallel to the number of cores available. 
@@ -57,7 +59,7 @@ Notes on minimal build of NOMAD
       pip install --user --upgrade \
         git+https://github.com/jan-provaznik/nomadlad.git@v0.9.0
 
-    (Option B) Install from locally cloned repository. Enter the repository first.
+    (Option B) Build from a locally cloned repository. Enter the repository first.
 
       python -m pip wheel -w dist -- .
 
