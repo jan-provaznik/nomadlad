@@ -5,70 +5,68 @@ Prerequisites
 
   - Python 3 (tested with version 3.12.4)
   - Boost.Python (tested with version 1.83)
-  - Compiled and installed NOMAD with static build (tested with version 4.4.0) 
+  - Compiled NOMAD with static libraries (tested with version 4.4.0) 
   - GCC release that supports at least C++17 (tested with version 14.1.1)
-  - Exported the NOMAD_HOME environment variable
+  - Exported the NOMAD_PATH environment variable
 
 Installation
 
-  - Assuming the prerequisites are satisfied (remember to export NOMAD_HOME)
+  - Assuming the prerequisites are satisfied (remember to export NOMAD_PATH)
     it is possible to install (build) the package with Pip. 
-  - In particular to install the (tagged) release v1.0.0 just execute
+  - In particular to install the (tagged) release v0.9.0 just execute
 
     pip install --user --upgrade \
-      git+https://github.com/jan-provaznik/nomadlad.git@v1.0.0
+      git+https://github.com/jan-provaznik/nomadlad.git@v0.9.0
 
 Notes
 
-  - Please note that the module links against the nomadEval, nomadAlgos and
-    nomadUtils libraries. 
-  - The library look-up paths are compiled into the module and set to
-    $NOMAD_HOME/build/release/lib. 
-  - Should you decide to move the NOMAD installation elsewhere, you must
-    rebuild this module.
+  - Please note that the module requires the nomadStatic and sgtelibStatic
+    libraries provided with NOMAD v4.4.x
 
-Notes on minimal installation of NOMAD 
+Notes on minimal build of NOMAD 
 
   This is a considerably condensed version of the official installation guide
-  at https://nomad-4-user-guide.readthedocs.io/en/v.4.3.1/Installation.html
-  and results in a minimal installation of NOMAD without any interfaces.
+  adapted to the purpose of manually building this module.
 
-  (Step 1) Enter the directory where you want NOMAD to be built and installed.
-
-    cd /the/target/directory
-
-  (Step 2) Download and extract the v4.4.0 release.
+  (Step 1) Download and extract the v4.4.0 release of NOMAD somewhere.
 
     wget https://github.com/bbopt/nomad/archive/refs/tags/v.4.4.0.tar.gz
     tar -zxf v.4.4.0.tar.gz
 
-  (Step 3) Enter the nomad-v4.4.0 directory and export the path as NOMAD_HOME.
+  (Step 2) Enter the nomad-v.4.4.0 directory
 
-    cd nomad-v4.4.0
-    export NOMAD_HOME=$(pwd)
+    cd nomad-v.4.4.0
 
-  (Step 4) Prepare, build and install NOMAD.
+  (Step 3) Export path to the current directory (needed for the final step)
 
-    cmake -S . -B build/release -DBUILD_INTERFACE_PYTHON=ON
-    cmake --build build/release --parallel 4
-    cmake --install build/release
+    export NOMAD_PATH=$(pwd)
 
-    Please note that you can set --parallel to the number of cores available.
+  (Step 3) Prepare and build NOMAD.
 
-  (Step 5) Compile and install nomadlad.
+    cmake -S . -B build -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DTEST_OPENMP=OFF
+    cmake --build build --config Release --clean-first --target nomadStatic --parallel
+
+    Please note that you can set --parallel to the number of cores available. 
+
+  (Step 5) Compile nomadlad module.
     
-    Please note that NOMAD_HOME must be exported for this to work.
+    Please note that NOMAD_PATH must be exported for this to work. 
 
-    pip install --user --upgrade \
-      git+https://github.com/jan-provaznik/nomadlad.git@v0.5.1
+    (Option A) Install directly from a tagged commit
+
+      pip install --user --upgrade \
+        git+https://github.com/jan-provaznik/nomadlad.git@v0.9.0
+
+    (Option B) Install from locally cloned repository. Enter the repository first.
+
+      python -m pip wheel -w dist -- .
 
   (Step 6) Profit.
 
 Documentation
 
-  The documentation is left as an exercise to the reader. 
+  The documentation is left as an exercise to the reader. See help(nomadlad).
 
   The package exports the nomadlad.minimize procedure. 
   The examples provided with the package are intended to serve as a tutorial.
-
 
