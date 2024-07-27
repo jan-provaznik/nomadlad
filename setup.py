@@ -9,48 +9,75 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.9.1'
+VERSION = '0.9.2'
 
-if not ('NOMAD_PATH' in os.environ):
-    print('The $NOMAD_PATH environment variable is not set.')
-    print('Please set it according to the README.')
-    sys.exit(1)
-
-NOMAD_PATH = os.environ['NOMAD_PATH']
-if not os.path.isdir(NOMAD_PATH):
-    print('The $NOMAD_PATH environment variable is set to "{}".'.format(NOMAD_PATH))
-    print('However, it does not exist.'.format(NOMAD_PATH))
-    sys.exit(1)
-
-# We use static paths to NOMAD libraries.
+# Environment processing
 #
 
-NOMAD_PATH_BUILDS = os.path.join(NOMAD_PATH, 'build')
-NOMAD_PATH_SOURCE = os.path.join(NOMAD_PATH, 'src')
+env_nomad_path = os.environ.get('NOMAD_PATH')
+env_nomad_msvc = os.environ.get('NOMAD_MSVC')
 
-NOMAD_PATH_LIB_NOMAD = os.path.join(NOMAD_PATH_BUILDS, 'src', 'libnomadStatic.a')
-NOMAD_PATH_LIB_SGTEL = os.path.join(NOMAD_PATH_BUILDS, 'ext', 'sgtelib', 'libsgtelibStatic.a')
+if not(env_nomad_path):
+    print('Missing $NOMAD_PATH environment variable.')
+    sys.exit(1)
+
+# Of course, Windows needs special treatment.
+#
+
+setup_compile_args = []
+setup_include_paths = []
+setup_library_names = []
+setup_library_paths = []
+setup_objects_paths = []
+
+if env_nomad_msvc:
+  setup_compile_args.append('/std:c++17')
+else:
+  setup_compile_args.append('-std=c++17')
+  setup_compile_args.append('-Wall')
+
+if env_nomad_msvc:
+  setup_library_names.append('nomadStatic')
+  setup_library_names.append('sgtelibStatic')
+  setup_library_paths.append(
+    os.path.join(env_nomad_path, 'build', 'src', 'Release'))
+  setup_library_paths.append(
+    os.path.join(env_nomad_path, 'build', 'ext', 'sgtelib', 'Release'))
+else:
+  setup_objects_paths.append(
+    os.path.join(env_nomad_path, 'build', 'libnomadStatic.a'))
+  setup_objects_paths.append(
+    os.path.join(env_nomad_path, 'build', 'libsgtelibStatic.a'))
+
+setup_include_paths.append(
+  os.path.join(env_nomad_path, 'src'))
+
+# C++ module
+#
 
 nomadlad_bridge = pybind11.setup_helpers.Pybind11Extension(
     name = 'nomadlad._nomadlad_bridge',
     sources = [ 'nomadlad/_bridge/nomadlad.cxx' ],
-    include_dirs = [ NOMAD_PATH_SOURCE ],
-    extra_objects = [ NOMAD_PATH_LIB_NOMAD, NOMAD_PATH_LIB_SGTEL ],
-    define_macros = [ ('NOMADLAD_VERSION', '"{}"'.format(VERSION)) ],
-    extra_compile_args = [ '-std=c++17', '-Wall', '-Wextra' ],
+    define_macros = [ ('NOMADLAD_VERSION', f'"{VERSION}"') ],
+    libraries = setup_library_names,
+    library_dirs = setup_library_paths,
+    include_dirs = setup_include_paths,
+    extra_objects = setup_objects_paths,
+    extra_compile_args = setup_compile_args,
     language = 'c++'
 )
 
 # Yes, yes, yes!
+#
 
 setuptools.setup(
     name = 'nomadlad',
     version = VERSION,
-    description = 'Basic interface for NOMAD 4.4.0 blackbox optimization software.',
+    description = 'Interface for NOMAD 4.4.0 blackbox optimization software.',
     author = 'Jan Provaznik',
     author_email = 'jan@provaznik.pro',
-    url = 'https://provaznik.pro/nomadlad',
-    license = 'LGPL',
+    url = 'https://github.com/jan-provaznik/nomadlad',
+    license = 'LGPL-3.0',
     ext_modules = [ nomadlad_bridge ],
     packages = [ 'nomadlad' ]
 )
