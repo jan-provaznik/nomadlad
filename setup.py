@@ -4,11 +4,12 @@
 #
 # Let's see how poorly this goes.
 
+import pybind11.setup_helpers
 import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.9.0'
+VERSION = '0.9.1'
 
 if not ('NOMAD_PATH' in os.environ):
     print('The $NOMAD_PATH environment variable is not set.')
@@ -30,15 +31,13 @@ NOMAD_PATH_SOURCE = os.path.join(NOMAD_PATH, 'src')
 NOMAD_PATH_LIB_NOMAD = os.path.join(NOMAD_PATH_BUILDS, 'src', 'libnomadStatic.a')
 NOMAD_PATH_LIB_SGTEL = os.path.join(NOMAD_PATH_BUILDS, 'ext', 'sgtelib', 'libsgtelibStatic.a')
 
-nomadlad_bridge = setuptools.Extension(
+nomadlad_bridge = pybind11.setup_helpers.Pybind11Extension(
     name = 'nomadlad._nomadlad_bridge',
     sources = [ 'nomadlad/_bridge/nomadlad.cxx' ],
-    libraries = [ 'boost_python3', 'boost_numpy3' ],
     include_dirs = [ NOMAD_PATH_SOURCE ],
-    extra_objects = [ NOMAD_PATH_LIB_NOMAD, NOMAD_PATH_LIB_SGTEL
-    ],
+    extra_objects = [ NOMAD_PATH_LIB_NOMAD, NOMAD_PATH_LIB_SGTEL ],
     define_macros = [ ('NOMADLAD_VERSION', '"{}"'.format(VERSION)) ],
-    extra_compile_args = [ '-w', '-std=c++17', '-Wextra', '-pthread' ],
+    extra_compile_args = [ '-std=c++17', '-Wall', '-Wextra' ],
     language = 'c++'
 )
 

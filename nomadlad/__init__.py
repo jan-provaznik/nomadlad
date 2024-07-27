@@ -63,10 +63,10 @@ def minimize (evaluator, configuration, multiple = 0):
 '''
 Version of the NOMAD bridge library.
 '''
-from ._nomadlad_bridge import version
+from ._nomadlad_bridge import __version__
 
 '''
 Version of the NOMAD optimization library.
 '''
-from ._nomadlad_bridge import nomad_version
+from ._nomadlad_bridge import __nomad_version__
 
