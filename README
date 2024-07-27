@@ -3,20 +3,20 @@ NOMAD (version 4) available from https://github.com/bbopt/nomad repository.
 
 Prerequisites
 
-  - Python 3 (tested with version 3.10.8)
-  - Boost.Python (tested with version 1.80)
-  - Successfully compiled and installed NOMAD (tested with version 4.3.1) 
-  - GCC release that supports at least C++17 (tested with version 12.2.0)
+  - Python 3 (tested with version 3.12.4)
+  - Boost.Python (tested with version 1.83)
+  - Compiled and installed NOMAD with static build (tested with version 4.4.0) 
+  - GCC release that supports at least C++17 (tested with version 14.1.1)
   - Exported the NOMAD_HOME environment variable
 
 Installation
 
   - Assuming the prerequisites are satisfied (remember to export NOMAD_HOME)
     it is possible to install (build) the package with Pip. 
-  - In particular to install the (tagged) release v0.5.0 just execute
+  - In particular to install the (tagged) release v1.0.0 just execute
 
     pip install --user --upgrade \
-      git+https://github.com/jan-provaznik/nomadlad.git@v0.5.1
+      git+https://github.com/jan-provaznik/nomadlad.git@v1.0.0
 
 Notes
 
@@ -37,19 +37,19 @@ Notes on minimal installation of NOMAD
 
     cd /the/target/directory
 
-  (Step 2) Download and extract the v4.3.1 release.
+  (Step 2) Download and extract the v4.4.0 release.
 
-    wget https://github.com/bbopt/nomad/archive/refs/tags/v.4.3.1.tar.gz
-    tar -zxf v.4.3.1.tar.gz
+    wget https://github.com/bbopt/nomad/archive/refs/tags/v.4.4.0.tar.gz
+    tar -zxf v.4.4.0.tar.gz
 
-  (Step 3) Enter the nomad-v4.3.1 directory and export the path as NOMAD_HOME.
+  (Step 3) Enter the nomad-v4.4.0 directory and export the path as NOMAD_HOME.
 
-    cd nomad-v4.3.1
+    cd nomad-v4.4.0
     export NOMAD_HOME=$(pwd)
 
   (Step 4) Prepare, build and install NOMAD.
 
-    cmake -S . -B build/release
+    cmake -S . -B build/release -DBUILD_INTERFACE_PYTHON=ON
     cmake --build build/release --parallel 4
     cmake --install build/release
 

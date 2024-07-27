@@ -8,47 +8,37 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.5.1'
+VERSION = '0.9.0'
 
-if not ('NOMAD_HOME' in os.environ):
-    print('The $NOMAD_HOME environment variable is not set.')
-    print('Please set it according to the official NOMAD installation guide.')
-    print('https://nomad-4-user-guide.readthedocs.io/en/latest/Installation.html')
+if not ('NOMAD_PATH' in os.environ):
+    print('The $NOMAD_PATH environment variable is not set.')
+    print('Please set it according to the README.')
     sys.exit(1)
 
-NOMAD_HOME = os.environ['NOMAD_HOME']
-
-if not os.path.isdir(NOMAD_HOME):
-    print('The $NOMAD_HOME environment variable is set to "{}".'.format(NOMAD_HOME))
-    print('However, it does not exist.'.format(NOMAD_HOME))
-    sys.exit(1)
-
-BUILD_PATH = 'build/release'
-NOMAD_PATH = os.path.join(NOMAD_HOME, BUILD_PATH)
-
+NOMAD_PATH = os.environ['NOMAD_PATH']
 if not os.path.isdir(NOMAD_PATH):
-    print('The $NOMAD_HOME environment variable is set to "{}" and it exists.'.format(NOMAD_HOME))
-    print('However, it looks like the library is not compiled properly.')
-    print('We expect "{}" to exist.'.format(NOMAD_PATH))
+    print('The $NOMAD_PATH environment variable is set to "{}".'.format(NOMAD_PATH))
+    print('However, it does not exist.'.format(NOMAD_PATH))
     sys.exit(1)
-
-NOMAD_PATH_LIB = os.path.join(NOMAD_PATH, 'lib')
-NOMAD_PATH_INC = os.path.join(NOMAD_PATH, 'include')
 
 # We use static paths to NOMAD libraries.
 #
-# Alternatively one could provide appropriate configuration to ld.so.conf and
-# have the operating system handle it on its own.
+
+NOMAD_PATH_BUILDS = os.path.join(NOMAD_PATH, 'build')
+NOMAD_PATH_SOURCE = os.path.join(NOMAD_PATH, 'src')
+
+NOMAD_PATH_LIB_NOMAD = os.path.join(NOMAD_PATH_BUILDS, 'src', 'libnomadStatic.a')
+NOMAD_PATH_LIB_SGTEL = os.path.join(NOMAD_PATH_BUILDS, 'ext', 'sgtelib', 'libsgtelibStatic.a')
 
 nomadlad_bridge = setuptools.Extension(
-    name = 'nomadlad._bridge',
+    name = 'nomadlad._nomadlad_bridge',
     sources = [ 'nomadlad/_bridge/nomadlad.cxx' ],
-    libraries = [ 'boost_python3', 'boost_numpy3', 'nomadAlgos', 'nomadUtils', 'nomadEval' ],
-    library_dirs = [ NOMAD_PATH_LIB ],
-    include_dirs = [ NOMAD_PATH_INC ],
+    libraries = [ 'boost_python3', 'boost_numpy3' ],
+    include_dirs = [ NOMAD_PATH_SOURCE ],
+    extra_objects = [ NOMAD_PATH_LIB_NOMAD, NOMAD_PATH_LIB_SGTEL
+    ],
     define_macros = [ ('NOMADLAD_VERSION', '"{}"'.format(VERSION)) ],
-    extra_compile_args = [ '-std=c++17', '-Wextra', '-pthread' ],
-    extra_link_args = [ '-Wl,-rpath,{}'.format(NOMAD_PATH_LIB) ],
+    extra_compile_args = [ '-w', '-std=c++17', '-Wextra', '-pthread' ],
     language = 'c++'
 )
 
@@ -57,7 +47,7 @@ nomadlad_bridge = setuptools.Extension(
 setuptools.setup(
     name = 'nomadlad',
     version = VERSION,
-    description = 'Basic interface for NOMAD 4.3.1 blackbox optimization software.',
+    description = 'Basic interface for NOMAD 4.4.0 blackbox optimization software.',
     author = 'Jan Provaznik',
     author_email = 'jan@provaznik.pro',
     url = 'https://provaznik.pro/nomadlad',

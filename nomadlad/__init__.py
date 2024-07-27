@@ -1,6 +1,6 @@
-#!/bin/env python
+#!/bin/env python3
 #
-# 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
+# 2021 - 2024 Jan Provaznik (jan@provaznik.pro)
 #
 # Interface for NOMAD, the blackbox optimization software.
 
@@ -41,19 +41,32 @@ def minimize (evaluator, configuration, multiple = 0):
 
     Returns
     -------
-    Returns a quadruple with the result.
+    Returns a quintuple with the result.
 
     (1) termination_success : bool
         determines the exit condition of the solver
-    (2) eval_count : int
+    (2) termination_status : int
+        determines the termination status of the solver, as reported by NOMAD,
+        with possible values { -6, -5, -4, -3, -2, -1, 0, 1 }
+    (3) eval_count : int
         determines the number of blackbox evaluations
-    (3) best_feasible is 
+    (4) best_feasible is 
         - either (best_value, best_point) tuple (if multiple = 0),
         - a list of these tuples (if multiple = 1) or 
         - None if there was no feasible solution found.
-    (4) best_infeasible behaves like best_feasible
+    (5) best_infeasible behaves like best_feasible
     '''
 
-    from ._bridge import minimize as _minimize
+    from ._nomadlad_bridge import minimize as _minimize
     return _minimize(evaluator, configuration, multiple)
+
+'''
+Version of the NOMAD bridge library.
+'''
+from ._nomadlad_bridge import version
+
+'''
+Version of the NOMAD optimization library.
+'''
+from ._nomadlad_bridge import nomad_version
 

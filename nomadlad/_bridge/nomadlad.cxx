@@ -11,9 +11,9 @@
 #include <vector>
 #include <string>
 
-#include <nomad/Nomad/nomad.hpp>
-#include <nomad/Algos/EvcInterface.hpp>
-#include <nomad/Cache/CacheBase.hpp>
+#include <Nomad/nomad.hpp>
+#include <Algos/EvcInterface.hpp>
+#include <Cache/CacheBase.hpp>
 
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
@@ -352,18 +352,19 @@ nomad_minimize_wrapper (
     throw;
   }
 
-  // Report on the optimization.
+  // Collect the information to report on the optimization.
   //
+  // - engine termination success
   // - engine termination status
   // - blackbox evaluation count
   // - optimal   feasible (value, point)
   // - optimal infeasible (value, point)
 
-  // Would documentation kill you, Nomad?
-  // I suppose it would.
-  //
-  // After consulting the implementation of the C interface I guess this is the
-  // only way to retrieve the result of the optimization.
+  int engine_termination_status = engine->getRunFlag();
+
+  // After consulting the documentation and the implementation of 
+  // the C interface I guess this is the only way to retrieve the 
+  // results of the optimization.
   
   size_t best_feasible_count, best_infeasible_count;
   std::vector<nomad_eval_point_t> best_feasible_list, best_infeasible_list;
@@ -372,10 +373,10 @@ nomad_minimize_wrapper (
   // evaluation. We can ask it to find the best (in)feasible evaluation.
 
   best_feasible_count = NOMAD::CacheBase::getInstance()->findBestFeas(best_feasible_list, 
-    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
 
   best_infeasible_count = NOMAD::CacheBase::getInstance()->findBestInf (best_infeasible_list, NOMAD::INF,
-    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
 
   // There can be multiple equally good values.
   // We return them all at the user's behest.
@@ -413,10 +414,17 @@ nomad_minimize_wrapper (
   NOMAD::CacheBase::getInstance()->clear();
   NOMAD::MainStep::resetComponentsBetweenOptimization();
 
+  // Report on the optimization.
   //
+  // - engine termination success
+  // - engine termination status
+  // - blackbox evaluation count
+  // - optimal   feasible (value, point)
+  // - optimal infeasible (value, point)
 
   return bpy::make_tuple(
     engine_termination_success, 
+    engine_termination_status,
     eval_count, 
     best_feasible_solution, 
     best_infeasible_solution);
@@ -424,7 +432,7 @@ nomad_minimize_wrapper (
 
 // Exports!
 
-BOOST_PYTHON_MODULE (_bridge) {
+BOOST_PYTHON_MODULE (_nomadlad_bridge) {
   
   // As per the documentation, 
   // the boost::python::numpy environment must be initialized.
@@ -434,9 +442,15 @@ BOOST_PYTHON_MODULE (_bridge) {
   bpy::def("minimize", nomad_minimize_wrapper);
 
   #ifdef NOMADLAD_VERSION
-  bpy::scope().attr("version") = std::string(NOMADLAD_VERSION);
+  bpy::scope().attr("__version__") = std::string(NOMADLAD_VERSION);
   #else
-  bpy::scope().attr("version") = std::string(__TIMESTAMP__);
+  bpy::scope().attr("__version__") = std::string(__TIMESTAMP__);
+  #endif
+
+  #ifdef NOMAD_VERSION_NUMBER
+  bpy::scope().attr("__nomad_version__") = std::string(NOMAD_VERSION_NUMBER);
+  #else
+  bpy::scope().attr("__nomad_version__") = bpy::object();
   #endif
 }
 

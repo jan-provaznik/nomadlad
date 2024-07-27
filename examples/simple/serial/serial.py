@@ -35,7 +35,8 @@ parameters = [
     'BB_MAX_BLOCK_SIZE 10',
     'MAX_BB_EVAL 100',
 
-    'SEED {}'.format(numpy.random.randint(0, 2 ** 31)),
+    'SEED 1000000000',
+    #'SEED {}'.format(numpy.random.randint(0, 2 ** 31)),
     'ADD_SEED_TO_FILE_NAMES no',
 
     'DIMENSION 2',
@@ -59,9 +60,10 @@ def program ():
     result = nomadlad.minimize(evaluator, parameters) 
 
     # Unpack and print out its result
-    flag, eval_count, best_feasible, best_infeasible = result
+    flag, status, eval_count, best_feasible, best_infeasible = result
 
     print('final termination flag           ', flag)
+    print('final termination status         ', status)
     print('blackbox evaluation count        ', eval_count)
     print('best   feasible result (f(w), w) ', best_feasible)
     print('best infeasible result (f(w), w) ', best_infeasible)
