@@ -1,67 +1,90 @@
 #!/usr/bin/env python3
 #
-# 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
+# 2021 - 2024 Jan Provaznik (jan@provaznik.pro)
 #
 # Let's see how poorly this goes.
 
+import pybind11.setup_helpers
 import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.5.1'
+VERSION = '1.0.0'
 
-if not ('NOMAD_HOME' in os.environ):
-    print('The $NOMAD_HOME environment variable is not set.')
-    print('Please set it according to the official NOMAD installation guide.')
-    print('https://nomad-4-user-guide.readthedocs.io/en/latest/Installation.html')
-    sys.exit(1)
-
-NOMAD_HOME = os.environ['NOMAD_HOME']
-
-if not os.path.isdir(NOMAD_HOME):
-    print('The $NOMAD_HOME environment variable is set to "{}".'.format(NOMAD_HOME))
-    print('However, it does not exist.'.format(NOMAD_HOME))
-    sys.exit(1)
-
-BUILD_PATH = 'build/release'
-NOMAD_PATH = os.path.join(NOMAD_HOME, BUILD_PATH)
-
-if not os.path.isdir(NOMAD_PATH):
-    print('The $NOMAD_HOME environment variable is set to "{}" and it exists.'.format(NOMAD_HOME))
-    print('However, it looks like the library is not compiled properly.')
-    print('We expect "{}" to exist.'.format(NOMAD_PATH))
-    sys.exit(1)
-
-NOMAD_PATH_LIB = os.path.join(NOMAD_PATH, 'lib')
-NOMAD_PATH_INC = os.path.join(NOMAD_PATH, 'include')
-
-# We use static paths to NOMAD libraries.
+# Environment processing
 #
-# Alternatively one could provide appropriate configuration to ld.so.conf and
-# have the operating system handle it on its own.
 
-nomadlad_bridge = setuptools.Extension(
-    name = 'nomadlad._bridge',
+env_nomad_path = os.environ.get('NOMAD_PATH')
+env_nomad_msvc = os.environ.get('NOMAD_MSVC')
+
+if not(env_nomad_path):
+    print('Missing $NOMAD_PATH environment variable.')
+    sys.exit(1)
+
+# Of course, Windows needs special treatment.
+#
+
+setup_compile_args = []
+setup_compile_args.append('-DNOMAD_STATIC_BUILD')
+
+setup_include_paths = []
+setup_library_names = []
+setup_library_paths = []
+setup_objects_paths = []
+
+if env_nomad_msvc:
+  setup_compile_args.append('/std:c++17')
+else:
+  setup_compile_args.append('-std=c++17')
+  setup_compile_args.append('-Wall')
+
+if env_nomad_msvc:
+  setup_library_names.append('nomadStatic')
+  setup_library_names.append('sgtelibStatic')
+  setup_library_paths.append(
+    os.path.join(env_nomad_path, 'build', 'src', 'Release'))
+  setup_library_paths.append(
+    os.path.join(env_nomad_path, 'build', 'ext', 'sgtelib', 'Release'))
+else:
+  setup_objects_paths.append(
+    os.path.join(env_nomad_path, 'build', 'src', 'libnomadStatic.a'))
+  setup_objects_paths.append(
+    os.path.join(env_nomad_path, 'build', 'ext', 'sgtelib', 'libsgtelibStatic.a'))
+
+setup_include_paths.append(
+  os.path.join(env_nomad_path, 'src'))
+
+# C++ module
+#
+
+nomadlad_bridge = pybind11.setup_helpers.Pybind11Extension(
+    name = 'nomadlad._nomadlad_bridge',
     sources = [ 'nomadlad/_bridge/nomadlad.cxx' ],
-    libraries = [ 'boost_python3', 'boost_numpy3', 'nomadAlgos', 'nomadUtils', 'nomadEval' ],
-    library_dirs = [ NOMAD_PATH_LIB ],
-    include_dirs = [ NOMAD_PATH_INC ],
-    define_macros = [ ('NOMADLAD_VERSION', '"{}"'.format(VERSION)) ],
-    extra_compile_args = [ '-std=c++17', '-Wextra', '-pthread' ],
-    extra_link_args = [ '-Wl,-rpath,{}'.format(NOMAD_PATH_LIB) ],
+    define_macros = [ ('NOMADLAD_VERSION', f'"{VERSION}"') ],
+    libraries = setup_library_names,
+    library_dirs = setup_library_paths,
+    include_dirs = setup_include_paths,
+    extra_objects = setup_objects_paths,
+    extra_compile_args = setup_compile_args,
     language = 'c++'
 )
 
 # Yes, yes, yes!
+#
+
+with open('./README', encoding = 'utf-8') as file:
+  README = file.read(-1)
 
 setuptools.setup(
     name = 'nomadlad',
     version = VERSION,
-    description = 'Basic interface for NOMAD 4.3.1 blackbox optimization software.',
+    description = 'Interface for NOMAD 4.4.0 blackbox optimization software.',
+    long_description = README,
+    long_description_content_type = 'text/plain',
     author = 'Jan Provaznik',
     author_email = 'jan@provaznik.pro',
-    url = 'https://provaznik.pro/nomadlad',
-    license = 'LGPL',
+    url = 'https://github.com/jan-provaznik/nomadlad',
+    license = 'LGPL-3.0',
     ext_modules = [ nomadlad_bridge ],
     packages = [ 'nomadlad' ]
 )

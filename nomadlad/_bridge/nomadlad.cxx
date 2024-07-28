@@ -1,4 +1,4 @@
-/* 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
+/* 2021 - 2024 Jan Provaznik (jan@provaznik.pro)
  *
  * Do you know that feeling when you spend an exorbitant amount of time
  * building a better alternative only to end up with a considerably worse
@@ -11,15 +11,16 @@
 #include <vector>
 #include <string>
 
-#include <nomad/Nomad/nomad.hpp>
-#include <nomad/Algos/EvcInterface.hpp>
-#include <nomad/Cache/CacheBase.hpp>
+#include <Nomad/nomad.hpp>
+#include <Algos/EvcInterface.hpp>
+#include <Cache/CacheBase.hpp>
 
-#include <boost/python.hpp>
-#include <boost/python/numpy.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 
-namespace bpy = boost::python;
-namespace bnp = boost::python::numpy;
+// Aliases for PyBind
+
+namespace python = pybind11;
 
 // Aliases for NOMAD (related) types.
 
@@ -36,36 +37,36 @@ struct proxy_block_evaluator;
 
 // NOMAD::EvalPoint conversion
 
-bnp::ndarray 
+python::array 
 make_ndarray_from_point (
   const nomad_eval_point_t & point);
 
 // NOMAD::Block conversion
 
-bpy::list 
+python::list 
 make_ndarray_list_from_block (
   const nomad_eval_block_t & block, 
   size_t bsize);
 
 // NOMAD::EvalPoint evaluation data (objective, point) conversion
 
-bpy::object 
+python::object 
 make_solution_from_point (
   const nomad_eval_point_t & point);
 
 // NOMAD::EvalPoint evaluation data (objective, point) extraction
 
-bpy::object 
+python::object 
 make_optimal_solution_only (
   const std::vector<nomad_eval_point_t> & points);
 
-bpy::list 
+python::list 
 make_optimal_solution_list (
   const std::vector<nomad_eval_point_t> & points);
 
 // Utility: Convert NOMAD::EvalPoint into numpy.ndarray vector.
 
-bnp::ndarray 
+python::array
 make_ndarray_from_point (
   const nomad_eval_point_t & point
 ) {
@@ -76,9 +77,8 @@ make_ndarray_from_point (
 
   // Allocate empty boost::python::numpy::ndarray in the right shape and type.
 
-  auto shape = bpy::make_tuple(psize);
-  auto dtype = bnp::dtype::get_builtin<double>();
-  auto array = bnp::empty(shape, dtype);
+  auto array = python::array_t<double>(psize);
+  //auto hells = array.request();
 
   // We must extract the actual value (double) from each 
   // NOMAD::Double component of NOMAD::ArrayOfDouble.
@@ -88,7 +88,8 @@ make_ndarray_from_point (
   // instance with contiguous memory.
 
   for (size_t index = 0; index < psize; ++index) {
-    array[index] = point[index].todouble();
+    //array[index] = point[index].todouble();
+    *(array.mutable_data(index)) = point[index].todouble();
   }
 
   return array;
@@ -97,12 +98,12 @@ make_ndarray_from_point (
 // Utility: Convert the NOMAD::Block into a list of numpy.ndarray vectors 
 // representing individual instances of NOMAD::EvalPoint within the block.
 
-bpy::list 
+python::list 
 make_ndarray_list_from_block (
   const nomad_eval_block_t & block, 
   size_t bsize
 ) {
-  bpy::list list;
+  python::list list;
   for (size_t index = 0; index < bsize; ++index) {
     auto array = make_ndarray_from_point(* block[index]);
     list.append(array);
@@ -112,13 +113,13 @@ make_ndarray_list_from_block (
 
 // Utility: Convert NOMAD::Point into a (result, array) tuple.
 
-bpy::object 
+python::object 
 make_solution_from_point (
   const nomad_eval_point_t & point
 ) {
   auto value = point.getEval(NOMAD::EvalType::BB)->getF().todouble();
   auto array = make_ndarray_from_point(point);
-  return bpy::make_tuple(value, array);
+  return python::make_tuple(value, array);
 }
 
 // Utility: Given a list of NOMAD::Point instances,
@@ -126,23 +127,23 @@ make_solution_from_point (
 // 
 // Return None (represented by empty boost::python::object) if list empty.
 
-bpy::object 
+python::object 
 make_optimal_solution_only (
   const std::vector<nomad_eval_point_t> & points
 ) {
   if (points.empty())
-    return bpy::object();
+    return python::none();
   return make_solution_from_point(points.front());
 }
 
 // Utility: Given a list of NOMAD::Point instances,
 // convert every point into a list of solution tuples.
 
-bpy::list 
+python::list 
 make_optimal_solution_list (
   const std::vector<nomad_eval_point_t> & points
 ) {
-  bpy::list list;
+  python::list list;
   for (const auto & point : points) {
     auto solution = make_solution_from_point(point);
     list.append(solution);
@@ -158,7 +159,7 @@ make_optimal_solution_list (
 
 struct proxy_block_evaluator : public NOMAD::Evaluator {
 
-  proxy_block_evaluator (bpy::object callback, const nomad_eval_param_t & params) : 
+  proxy_block_evaluator (python::object callback, const nomad_eval_param_t & params) : 
     NOMAD::Evaluator(params, NOMAD::EvalType::BB), $callback(callback) {
   }
 
@@ -193,7 +194,7 @@ struct proxy_block_evaluator : public NOMAD::Evaluator {
     // Construct a python-friendly payload of evaluation points represented
     // using numpy.ndarray vectors.
 
-    bpy::list payload = make_ndarray_list_from_block(block, bsize);
+    python::list payload = make_ndarray_list_from_block(block, bsize);
 
     // Invoke the callback python-function.
     //
@@ -201,7 +202,7 @@ struct proxy_block_evaluator : public NOMAD::Evaluator {
     // It is expected to return an iterable over (success, include, outcome)
     // triplets respective to the individual blackbox evaluations.
 
-    bpy::object gen = $callback(payload);
+    python::object gen = $callback(payload);
 
     // Process the returned iterable.
     //
@@ -212,40 +213,51 @@ struct proxy_block_evaluator : public NOMAD::Evaluator {
     // (2) include is boolean-convertible (bool, int),
     // (3) outcome is std::string-convertible (str).
 
-    auto cur = bpy::stl_input_iterator<bpy::tuple>(gen);
-    auto end = bpy::stl_input_iterator<bpy::tuple>();
+    auto cur = gen.begin();
+    auto end = gen.end();
 
     for (size_t index = 0; cur != end && index < bsize; ++cur, ++index) {
 
-      bpy::tuple element = (* cur);
+      auto element = python::cast<python::tuple>(* cur);
 
-      auto extract_success = bpy::extract<bool>(element[0]);
-      auto extract_include = bpy::extract<bool>(element[1]);
-      auto extract_outcome = bpy::extract<std::string>(element[2]);
+      bool value_success = false;
+      bool value_include = false;
+      std::string value_outcome;
 
-      if (! extract_success.check())
+      try {
+        value_success = python::cast<bool>(element[0]);
+      } catch (const python::cast_error &) {
         throw std::runtime_error("Could not convert 'success' indicator to bool.");
-      if (! extract_include.check())
+      }
+
+      try {
+        value_include = python::cast<bool>(element[1]);
+      } catch (const python::cast_error &) {
         throw std::runtime_error("Could not convert 'include' indicator to bool.");
-      if (! extract_outcome.check())
+      }
+
+      try {
+        value_outcome = python::cast<std::string>(element[2]);
+      } catch (const python::cast_error &) {
         throw std::runtime_error("Could not convert 'outcome' indicator to string.");
+      }
 
       // Save the particular values into appropriate Nomad structures.
 
-      include[index] = extract_include();
-      success[index] = extract_success();
+      success[index] = value_success;
+      include[index] = value_include;
 
       // Please note that it is up to the user to ensure the string
       // adheres to the user-defined BB_OUTPUT_TYPE structure.
 
-      block[index]->setBBO(extract_outcome());
+      block[index]->setBBO(value_outcome);
     }
 
     return success;
   }
 
   private:
-    bpy::object $callback;
+    python::object $callback;
 };
 
 // Wrapper: Python interface for the optimization engine. 
@@ -285,10 +297,10 @@ struct proxy_block_evaluator : public NOMAD::Evaluator {
 //      solution found.
 //  (4) best_infeasible behaves like best_feasible
 
-bpy::object 
+python::object 
 nomad_minimize_wrapper (
-  bpy::object callback, 
-  bpy::object options, 
+  python::function callback, 
+  python::list options, 
   bool multiple
 ) {
 
@@ -302,11 +314,9 @@ nomad_minimize_wrapper (
 
   auto params = std::make_shared<NOMAD::AllParameters>();
 
-  auto optcur = bpy::stl_input_iterator<std::string>(options);
-  auto optend = bpy::stl_input_iterator<std::string>();
-
-  for (; optcur != optend; ++optcur) {
-    params->readParamLine(* optcur);
+  for (auto option : options) {
+    std::string value = python::cast<std::string>(option);
+    params->readParamLine(value);
   }
 
   // Apparently boost::python does not bode well in multi-threaded environment.
@@ -352,18 +362,19 @@ nomad_minimize_wrapper (
     throw;
   }
 
-  // Report on the optimization.
+  // Collect the information to report on the optimization.
   //
+  // - engine termination success
   // - engine termination status
   // - blackbox evaluation count
   // - optimal   feasible (value, point)
   // - optimal infeasible (value, point)
 
-  // Would documentation kill you, Nomad?
-  // I suppose it would.
-  //
-  // After consulting the implementation of the C interface I guess this is the
-  // only way to retrieve the result of the optimization.
+  int engine_termination_status = engine->getRunFlag();
+
+  // After consulting the documentation and the implementation of 
+  // the C interface I guess this is the only way to retrieve the 
+  // results of the optimization.
   
   size_t best_feasible_count, best_infeasible_count;
   std::vector<nomad_eval_point_t> best_feasible_list, best_infeasible_list;
@@ -372,15 +383,15 @@ nomad_minimize_wrapper (
   // evaluation. We can ask it to find the best (in)feasible evaluation.
 
   best_feasible_count = NOMAD::CacheBase::getInstance()->findBestFeas(best_feasible_list, 
-    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
 
   best_infeasible_count = NOMAD::CacheBase::getInstance()->findBestInf (best_infeasible_list, NOMAD::INF,
-    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
 
   // There can be multiple equally good values.
   // We return them all at the user's behest.
 
-  bpy::object best_feasible_solution;
+  python::object best_feasible_solution;
 
   if (best_feasible_count) {
     best_feasible_solution = multiple ?
@@ -388,7 +399,7 @@ nomad_minimize_wrapper (
       make_optimal_solution_only(best_feasible_list);
   }
 
-  bpy::object best_infeasible_solution;
+  python::object best_infeasible_solution;
 
   if (best_infeasible_count) {
     best_infeasible_solution = multiple ?
@@ -413,10 +424,17 @@ nomad_minimize_wrapper (
   NOMAD::CacheBase::getInstance()->clear();
   NOMAD::MainStep::resetComponentsBetweenOptimization();
 
+  // Report on the optimization.
   //
+  // - engine termination success
+  // - engine termination status
+  // - blackbox evaluation count
+  // - optimal   feasible (value, point)
+  // - optimal infeasible (value, point)
 
-  return bpy::make_tuple(
+  return python::make_tuple(
     engine_termination_success, 
+    engine_termination_status,
     eval_count, 
     best_feasible_solution, 
     best_infeasible_solution);
@@ -424,19 +442,21 @@ nomad_minimize_wrapper (
 
 // Exports!
 
-BOOST_PYTHON_MODULE (_bridge) {
+PYBIND11_MODULE(_nomadlad_bridge, mod) {
   
-  // As per the documentation, 
-  // the boost::python::numpy environment must be initialized.
-  bnp::initialize();
-
   // :)
-  bpy::def("minimize", nomad_minimize_wrapper);
+  mod.def("minimize", nomad_minimize_wrapper);
 
   #ifdef NOMADLAD_VERSION
-  bpy::scope().attr("version") = std::string(NOMADLAD_VERSION);
+  mod.attr("__version__") = std::string(NOMADLAD_VERSION);
   #else
-  bpy::scope().attr("version") = std::string(__TIMESTAMP__);
+  mod.attr("__version__") = std::string(__TIMESTAMP__);
+  #endif
+
+  #ifdef NOMAD_VERSION_NUMBER
+  mod.attr("__nomad_version__") = std::string(NOMAD_VERSION_NUMBER);
+  #else
+  mod.attr("__nomad_version__") = python::none();
   #endif
 }
 
