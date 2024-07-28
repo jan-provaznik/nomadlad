@@ -35,8 +35,7 @@ parameters = [
     'BB_MAX_BLOCK_SIZE 10',
     'MAX_BB_EVAL 100',
 
-    'SEED 1000000000',
-    #'SEED {}'.format(numpy.random.randint(0, 2 ** 31)),
+    'SEED {}'.format(numpy.random.randint(0, 64)),
     'ADD_SEED_TO_FILE_NAMES no',
 
     'DIMENSION 2',
