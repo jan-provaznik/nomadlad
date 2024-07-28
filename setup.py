@@ -45,9 +45,9 @@ if env_nomad_msvc:
     os.path.join(env_nomad_path, 'build', 'ext', 'sgtelib', 'Release'))
 else:
   setup_objects_paths.append(
-    os.path.join(env_nomad_path, 'build', 'libnomadStatic.a'))
+    os.path.join(env_nomad_path, 'build', 'src', 'libnomadStatic.a'))
   setup_objects_paths.append(
-    os.path.join(env_nomad_path, 'build', 'libsgtelibStatic.a'))
+    os.path.join(env_nomad_path, 'build', 'ext', 'sgtelib', 'libsgtelibStatic.a'))
 
 setup_include_paths.append(
   os.path.join(env_nomad_path, 'src'))

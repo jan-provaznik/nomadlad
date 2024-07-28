@@ -226,19 +226,19 @@ struct proxy_block_evaluator : public NOMAD::Evaluator {
 
       try {
         value_success = python::cast<bool>(element[0]);
-      } catch (python::cast_error) {
+      } catch (const python::cast_error &) {
         throw std::runtime_error("Could not convert 'success' indicator to bool.");
       }
 
       try {
         value_include = python::cast<bool>(element[1]);
-      } catch (python::cast_error) {
+      } catch (const python::cast_error &) {
         throw std::runtime_error("Could not convert 'include' indicator to bool.");
       }
 
       try {
         value_outcome = python::cast<std::string>(element[2]);
-      } catch (python::cast_error) {
+      } catch (const python::cast_error &) {
         throw std::runtime_error("Could not convert 'outcome' indicator to string.");
       }
 

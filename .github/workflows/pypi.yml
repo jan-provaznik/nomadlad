@@ -43,10 +43,10 @@ jobs:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
           CIBW_BEFORE_ALL: >-
-            pushd ./nomad &&
+            cd ./nomad &&
             cmake -DTEST_OPENMP=OFF -DBUILD_EXAMPLES=OFF -DBUILD_INTERFACE_PYTHON=ON -S . -B build &&
             cmake --build build --config Release --clean-first --target nomadStatic --parallel 2 &&
-            popd
+            cd ..
           CIBW_ENVIRONMENT: >-
             NOMAD_PATH=./nomad
             NOMAD_MSVC=${{ matrix.target.msvc }}
