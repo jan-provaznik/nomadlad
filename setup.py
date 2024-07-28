@@ -25,6 +25,8 @@ if not(env_nomad_path):
 #
 
 setup_compile_args = []
+setup_compile_args.append('-DNOMAD_STATIC_BUILD')
+
 setup_include_paths = []
 setup_library_names = []
 setup_library_paths = []
