@@ -4,7 +4,7 @@
 #
 # Interface for NOMAD, the blackbox optimization software.
 
-def minimize (evaluator, configuration, multiple = 0):
+def minimize (evaluator, configuration, multiple = False):
     '''
     Find global minimum using NOMAD blackbox optimizer.
 

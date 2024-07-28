@@ -57,7 +57,7 @@ Building (A minimal build of NOMAD)
     (Option A) Install directly from a tagged commit
 
       pip install --user --upgrade \
-        git+https://github.com/jan-provaznik/nomadlad.git@v0.9.0
+        git+https://github.com/jan-provaznik/nomadlad.git@v1.0.0
 
     (Option B) Build from a locally cloned repository. Enter the repository first.
 

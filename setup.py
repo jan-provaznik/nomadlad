@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
+# 2021 - 2024 Jan Provaznik (jan@provaznik.pro)
 #
 # Let's see how poorly this goes.
 
@@ -9,7 +9,7 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.9.3'
+VERSION = '1.0.0'
 
 # Environment processing
 #

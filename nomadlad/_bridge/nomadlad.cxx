@@ -1,4 +1,4 @@
-/* 2021 - 2023 Jan Provaznik (jan@provaznik.pro)
+/* 2021 - 2024 Jan Provaznik (jan@provaznik.pro)
  *
  * Do you know that feeling when you spend an exorbitant amount of time
  * building a better alternative only to end up with a considerably worse
