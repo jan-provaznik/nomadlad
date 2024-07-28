@@ -9,7 +9,7 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '0.9.2'
+VERSION = '0.9.3'
 
 # Environment processing
 #
@@ -72,10 +72,15 @@ nomadlad_bridge = pybind11.setup_helpers.Pybind11Extension(
 # Yes, yes, yes!
 #
 
+with open('./README', encoding = 'utf-8') as file:
+  README = file.read(-1)
+
 setuptools.setup(
     name = 'nomadlad',
     version = VERSION,
     description = 'Interface for NOMAD 4.4.0 blackbox optimization software.',
+    long_description = README,
+    long_description_content_type = 'text/plain',
     author = 'Jan Provaznik',
     author_email = 'jan@provaznik.pro',
     url = 'https://github.com/jan-provaznik/nomadlad',
