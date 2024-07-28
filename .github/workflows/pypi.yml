@@ -44,7 +44,7 @@ jobs:
             ${{ matrix.target.archs }}
           CIBW_BEFORE_ALL: >-
             pushd ./nomad &&
-            cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_PYTHON=OFF -DBUILD_EXAMPLES=OFF -S . -B build &&
+            cmake -DTEST_OPENMP=OFF -DBUILD_EXAMPLES=OFF -DBUILD_INTERFACE_PYTHON=ON -S . -B build &&
             cmake --build build --config Release --clean-first --target nomadStatic --parallel 2 &&
             popd
           CIBW_ENVIRONMENT: >-
