@@ -48,9 +48,9 @@ jobs:
             pytest 
             numpy
           CIBW_TEST_COMMAND: >-
-            pytest {project}/tests
+            pytest -v {project}/tests
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.8
+            >=3.10
           CIBW_BUILD_FRONTEND: >-
             build
           CIBW_BUILD_VERBOITY: >-

@@ -13,16 +13,16 @@ def blackbox_01 (point_list):
 
 def test_blackbox_01 ():
     parameters = [
-            'BB_OUTPUT_TYPE OBJ',
-            'BB_MAX_BLOCK_SIZE 10',
-            'MAX_BB_EVAL 100',
-            'DIMENSION 1',
-            'DIRECTION_TYPE ORTHO 2N',
-            'SEED 1337',
-            'X0          ( 2.0 )',
-            'LOWER_BOUND ( 0.0 )',
-            'UPPER_BOUND ( 5.0 )',
-            'DISPLAY_DEGREE 0'
+        'BB_OUTPUT_TYPE OBJ',
+        'BB_MAX_BLOCK_SIZE 10',
+        'MAX_BB_EVAL 100',
+        'SEED 1337',
+        'DIMENSION 1',
+        'DIRECTION_TYPE ORTHO 2N',
+        'X0          ( 2.0 )',
+        'LOWER_BOUND ( 0.0 )',
+        'UPPER_BOUND ( 5.0 )',
+        'DISPLAY_DEGREE 0'
     ]
 
     solution = nomadlad.minimize(blackbox_01, parameters, multiple = False)
