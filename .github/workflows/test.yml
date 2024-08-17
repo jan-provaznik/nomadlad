@@ -50,7 +50,7 @@ jobs:
           CIBW_TEST_COMMAND: >-
             pytest -v {project}/tests
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.10
+            >=3.11
           CIBW_BUILD_FRONTEND: >-
             build
           CIBW_BUILD_VERBOITY: >-

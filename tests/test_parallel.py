@@ -1,17 +1,18 @@
 import nomadlad
 import numpy as np
+import functools
+import concurrent.futures
 
-def blackbox_serial (point_list):
+def blackbox_single_point (point):
     '''
     Optimal solution is (2 - sqrt(2)) for point = [ sqrt(2), sqrt(2) ].
     '''
 
-    for point in point_list:
-        fw = np.linalg.norm(point - 1, 2)
-        cw = 2 - np.linalg.norm(point, 2)
-        yield 1, 1, f'{fw:.16f} {cw:.16f}'
+    fw = np.linalg.norm(point - 1, 2)
+    cw = 2 - np.linalg.norm(point, 2)
+    return 1, 1, f'{fw:.16f} {cw:.16f}'
 
-def test_blackbox_serial ():
+def test_blackbox_parallel ():
     parameters = [
         'BB_OUTPUT_TYPE OBJ PB',
         'BB_MAX_BLOCK_SIZE 10',
@@ -25,7 +26,9 @@ def test_blackbox_serial ():
         'DISPLAY_DEGREE 0'
     ]
 
-    solution = nomadlad.minimize(blackbox_serial, parameters, multiple = False)
+    with concurrent.futures.ProcessPoolExecutor(2) as executor:
+        evaluator = functools.partial(executor.map, blackbox_single_point)
+        solution = nomadlad.minimize(evaluator, parameters, multiple = False) 
 
     solution_value = solution[3][0]
     solution_point = solution[3][1]
@@ -33,7 +36,9 @@ def test_blackbox_serial ():
     assert np.isclose(solution_value, 2 - np.sqrt(2))
     assert np.all(np.isclose(solution_point, np.sqrt(2)))
 
-    solution = nomadlad.minimize(blackbox_serial, parameters, multiple = True)
+    with concurrent.futures.ProcessPoolExecutor(2) as executor:
+        evaluator = functools.partial(executor.map, blackbox_single_point)
+        solution = nomadlad.minimize(evaluator, parameters, multiple = True) 
 
     assert 6 == len(solution[3])
     assert 2 == len(solution[4])
