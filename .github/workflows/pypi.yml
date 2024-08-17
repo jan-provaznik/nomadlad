@@ -49,7 +49,7 @@ jobs:
             NOMAD_PATH=./nomad
             NOMAD_MSVC=${{ matrix.target.msvc }}
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.8
+            >=3.11
           CIBW_BUILD_FRONTEND: >-
             build
           CIBW_BUILD_VERBOITY: >-
