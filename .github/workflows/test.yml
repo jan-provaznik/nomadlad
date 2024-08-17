@@ -1,0 +1,60 @@
+name: Build and test the binary wheels (Windows, Linux)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: Windows
+            os: windows-latest
+            archs: AMD64
+            msvc: 1
+
+          - name: Ubuntu
+            os: ubuntu-latest
+            archs: x86_64
+
+    name: Wheels for ${{ matrix.target.name }} 
+    runs-on: ${{ matrix.target.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: 'bbopt/nomad'
+          ref: 'v.4.4.0'
+          path: './nomad'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Build binary wheels
+        uses: pypa/cibuildwheel@v2.19.2
+        env:
+          CIBW_ARCHS: >-
+            ${{ matrix.target.archs }}
+          CIBW_BEFORE_ALL: >-
+            cd ./nomad &&
+            cmake -DTEST_OPENMP=OFF -DBUILD_EXAMPLES=OFF -DBUILD_INTERFACE_PYTHON=ON -S . -B build &&
+            cmake --build build --config Release --clean-first --target nomadStatic --parallel 2 &&
+            cd ..
+          CIBW_ENVIRONMENT: >-
+            NOMAD_PATH=./nomad
+            NOMAD_MSVC=${{ matrix.target.msvc }}
+          CIBW_TEST_REQUIRES: >-
+            pytest 
+            numpy
+          CIBW_TEST_COMMAND: >-
+            pytest tests
+          CIBW_PROJECT_REQUIRES_PYTHON: >-
+            >=3.8
+          CIBW_BUILD_FRONTEND: >-
+            build
+          CIBW_BUILD_VERBOITY: >-
+            3
+        with:
+          output-dir: wheelhouse
+
