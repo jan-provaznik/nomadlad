@@ -391,7 +391,7 @@ nomad_minimize_wrapper (
   // There can be multiple equally good values.
   // We return them all at the user's behest.
 
-  python::object best_feasible_solution;
+  python::object best_feasible_solution = python::none();
 
   if (best_feasible_count) {
     best_feasible_solution = multiple ?
@@ -399,7 +399,7 @@ nomad_minimize_wrapper (
       make_optimal_solution_only(best_feasible_list);
   }
 
-  python::object best_infeasible_solution;
+  python::object best_infeasible_solution = python::none();
 
   if (best_infeasible_count) {
     best_infeasible_solution = multiple ?

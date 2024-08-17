@@ -9,7 +9,7 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 
 # Environment processing
 #
@@ -26,6 +26,7 @@ if not(env_nomad_path):
 
 setup_compile_args = []
 setup_compile_args.append('-DNOMAD_STATIC_BUILD')
+setup_compile_args.append('-DPYBIND11_DETAILED_ERROR_MESSAGES')
 
 setup_include_paths = []
 setup_library_names = []
