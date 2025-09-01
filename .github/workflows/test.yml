@@ -16,7 +16,7 @@ jobs:
             os: ubuntu-latest
             archs: x86_64
           - name: macOS (x64)
-            os: macos-latest
+            os: macos-13
             archs: x86_64
 
     name: Wheels for ${{ matrix.target.name }} 
