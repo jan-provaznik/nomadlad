@@ -12,11 +12,11 @@ jobs:
             os: windows-latest
             archs: AMD64
             msvc: 1
-          - name: Linux (x64)
+          - name: Ubuntu (x64)
             os: ubuntu-latest
             archs: x86_64
           - name: macOS (x64)
-            os: macos-latest
+            os: macos-13
             archs: x86_64
 
     name: Wheels for ${{ matrix.target.name }} 
@@ -34,7 +34,7 @@ jobs:
           python-version: '3.12'
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@v2.19.2
+        uses: pypa/cibuildwheel@v3.1.4
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}

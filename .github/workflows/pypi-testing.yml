@@ -16,14 +16,13 @@ jobs:
             os: ubuntu-latest
             archs: x86_64
           - name: macOS (x64)
-            os: macos-latest
+            os: macos-13
             archs: x86_64
 
     name: Wheels for ${{ matrix.target.name }} 
     runs-on: ${{ matrix.target.os }}
 
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
           repository: 'bbopt/nomad'
@@ -34,7 +33,7 @@ jobs:
           python-version: '3.12'
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@v2.19.2
+        uses: pypa/cibuildwheel@v3.1.4
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
@@ -61,9 +60,10 @@ jobs:
           output-dir: wheelhouse
 
       - name: Collect wheels for processing
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: wheelhouse/*.whl
+          name: wheelhouse-${{ matrix.target.os }}-${{ matrix.target.archs }}
 
   # We use pypa/gh-action-pypi-publish to upload the binary wheels onto PyPi.
 
@@ -74,10 +74,13 @@ jobs:
 
     steps:
       - name: Collect wheels for publication
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
-          name: artifact
+          merge-multiple: true
           path: wheelhouse
+
+      - name: Display wheelhouse contents
+        run: ls -R wheelhouse
 
       - name: Publish wheels to PyPi (testing)
         uses: pypa/gh-action-pypi-publish@release/v1
