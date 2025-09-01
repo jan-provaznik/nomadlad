@@ -64,6 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: wheelhouse/*.whl
+          name: wheelhouse-${{ matrix.target.os }}-${{ matrix-target.archs }}
 
   # We use pypa/gh-action-pypi-publish to upload the binary wheels onto PyPi.
 
@@ -76,8 +77,11 @@ jobs:
       - name: Collect wheels for publication
         uses: actions/download-artifact@v4
         with:
-          name: artifact
+          merge-multiple: true
           path: wheelhouse
+
+      - name: Display wheelhouse contents
+        run: ls -R wheelhouse
 
       - name: Publish wheels to PyPi (testing)
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -86,3 +90,4 @@ jobs:
           password: ${{ secrets.PYPI_TESTING_API_TOKEN }}
           packages_dir: wheelhouse
           skip_existing: true
+
