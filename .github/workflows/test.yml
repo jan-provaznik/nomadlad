@@ -12,7 +12,7 @@ jobs:
             os: windows-latest
             archs: AMD64
             msvc: 1
-          - name: Linux (x64)
+          - name: Ubuntu (x64)
             os: ubuntu-latest
             archs: x86_64
           - name: macOS (x64)
