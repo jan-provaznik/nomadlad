@@ -24,7 +24,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
         with:
           repository: 'bbopt/nomad'
           ref: 'v.4.4.0'
@@ -90,4 +89,3 @@ jobs:
           password: ${{ secrets.PYPI_TESTING_API_TOKEN }}
           packages_dir: wheelhouse
           skip_existing: true
-
