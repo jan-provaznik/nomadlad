@@ -25,14 +25,8 @@ def test_blackbox_01 ():
         'DISPLAY_DEGREE 0'
     ]
 
-    solution = nomadlad.minimize(blackbox_01, parameters, multiple = False)
+    solution = nomadlad.minimize(blackbox_01, parameters)
     solution_point = solution[3][1]
-    assert np.isclose(solution_point, 1.0)
-
-    solution = nomadlad.minimize(blackbox_01, parameters, multiple = True)
-    assert 29 == len(solution[3])
-
-    solution_point = solution[3][0][1]
     assert np.isclose(solution_point, 1.0)
 
 def blackbox_02 (point_list):
@@ -63,19 +57,7 @@ def test_blackbox_02 ():
     # The particular choice of X0 and SEED should result in the first solution
     # being the -1 point.
 
-    solution = nomadlad.minimize(blackbox_02, parameters, multiple = False)
+    solution = nomadlad.minimize(blackbox_02, parameters)
     solution_point = solution[3][1]
     assert np.isclose(solution_point, -1.0)
-
-    # There should be 35 solutions reported.
-    # The first one is -1, the last one is +1.
-
-    solution = nomadlad.minimize(blackbox_02, parameters, True)
-    assert 35 == len(solution[3])
-
-    solution_point = solution[3][0][1]
-    assert np.isclose(solution_point, -1.0)
-
-    solution_point = solution[3][-1][1]
-    assert np.isclose(solution_point, +1.0)
 

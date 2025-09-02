@@ -57,11 +57,7 @@ make_solution_from_point (
 // NOMAD::EvalPoint evaluation data (objective, point) extraction
 
 python::object 
-make_optimal_solution_only (
-  const std::vector<nomad_eval_point_t> & points);
-
-python::list 
-make_optimal_solution_list (
+make_optimal_solution (
   const std::vector<nomad_eval_point_t> & points);
 
 // Utility: Convert NOMAD::EvalPoint into numpy.ndarray vector.
@@ -117,7 +113,7 @@ python::object
 make_solution_from_point (
   const nomad_eval_point_t & point
 ) {
-  auto value = point.getEval(NOMAD::EvalType::BB)->getF().todouble();
+  auto value = point.getEval(NOMAD::EvalType::BB)->getF(NOMAD::defaultFHComputeTypeS).todouble();
   auto array = make_ndarray_from_point(point);
   return python::make_tuple(value, array);
 }
@@ -128,27 +124,12 @@ make_solution_from_point (
 // Return None (represented by empty boost::python::object) if list empty.
 
 python::object 
-make_optimal_solution_only (
+make_optimal_solution (
   const std::vector<nomad_eval_point_t> & points
 ) {
   if (points.empty())
     return python::none();
   return make_solution_from_point(points.front());
-}
-
-// Utility: Given a list of NOMAD::Point instances,
-// convert every point into a list of solution tuples.
-
-python::list 
-make_optimal_solution_list (
-  const std::vector<nomad_eval_point_t> & points
-) {
-  python::list list;
-  for (const auto & point : points) {
-    auto solution = make_solution_from_point(point);
-    list.append(solution);
-  }
-  return list;
 }
 
 // Heavy lifting.
@@ -283,25 +264,17 @@ struct proxy_block_evaluator : public NOMAD::Evaluator {
 //      Notable parameters include X0, LOWER_BOUND, UPPER_BOUND, BB_OUTPUT_TYPE,
 //      BB_MAX_BLOCK_SIZE, and MAX_BB_EVAL.
 //
-//  (3) multiple must be boolean-convertible 
-//
-//      Ir determines whether multiple equally good solutions should be returned,
-//      defaults to false: only the first best solution is returned.
-//
 //  Returns a tuple (termination_success, eval_count, best_feasible, best_infeasible).
 //
 //  (1) termination_success determines the exit condition of the solver
 //  (2) eval_count determines the number of blackbox evaluations
-//  (3) best_feasible is either (best_value, best_point) tuple (if multiple = 0),
-//      a list of these tuples (if multiple = 1) or None if there was no feasible
-//      solution found.
+//  (3) best_feasible is a (best_value, best_point) tuple
 //  (4) best_infeasible behaves like best_feasible
 
 python::object 
 nomad_minimize_wrapper (
   python::function callback, 
-  python::list options, 
-  bool multiple
+  python::list options
 ) {
 
   // Configuration of the optimizer engine.
@@ -321,12 +294,12 @@ nomad_minimize_wrapper (
 
   // Apparently boost::python does not bode well in multi-threaded environment.
   //
-  // Nomad can be instructed (via NB_THREADS_OPENMP) to utilize a number of
-  // threads during the evaluation of candidate points.
+  // Nomad can be instructed (via NB_THREADS_PARALLEL_EVAL) to utilize a number
+  // of threads during the evaluation of candidate points.
   //
   // We explicitly set the parameter to enforce evaluation in a single thread.
 
-  params->readParamLine("NB_THREADS_OPENMP 1");
+  params->readParamLine("NB_THREADS_PARALLEL_EVAL 1");
 
   // Parameters have to be checked. 
   // @todo We just re-throw the exception if it happens. 
@@ -382,30 +355,16 @@ nomad_minimize_wrapper (
   // The NOMAD::CacheBase holds information about each and every blackbox
   // evaluation. We can ask it to find the best (in)feasible evaluation.
 
-  best_feasible_count = NOMAD::CacheBase::getInstance()->findBestFeas(best_feasible_list, 
-    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+  best_feasible_count = NOMAD::CacheBase::getInstance()->findBestFeas(best_feasible_list);
+  best_infeasible_count = NOMAD::CacheBase::getInstance()->findBestInf(best_infeasible_list);
 
-  best_infeasible_count = NOMAD::CacheBase::getInstance()->findBestInf (best_infeasible_list, NOMAD::INF,
-    NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+  // There can be multiple equally good values. We take only the first one,
+  // following the same logic as the official NOMAD interfaces.
 
-  // There can be multiple equally good values.
-  // We return them all at the user's behest.
-
-  python::object best_feasible_solution = python::none();
-
-  if (best_feasible_count) {
-    best_feasible_solution = multiple ?
-      make_optimal_solution_list(best_feasible_list) :
-      make_optimal_solution_only(best_feasible_list);
-  }
-
-  python::object best_infeasible_solution = python::none();
-
-  if (best_infeasible_count) {
-    best_infeasible_solution = multiple ?
-      make_optimal_solution_list(best_infeasible_list) :
-      make_optimal_solution_only(best_infeasible_list);
-  }
+  python::object best_feasible_solution = 
+    make_optimal_solution(best_feasible_list);
+  python::object best_infeasible_solution = 
+      make_optimal_solution(best_infeasible_list);
 
   // Determine the number of evaluations.
   //
