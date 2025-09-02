@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: 'bbopt/nomad'
-          ref: 'v.4.4.0'
+          ref: 'v.4.5.1'
           path: './nomad'
       - uses: actions/setup-python@v5
         with:
