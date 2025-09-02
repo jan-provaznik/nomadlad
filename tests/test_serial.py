@@ -25,16 +25,11 @@ def test_blackbox_serial ():
         'DISPLAY_DEGREE 0'
     ]
 
-    solution = nomadlad.minimize(blackbox_serial, parameters, multiple = False)
+    solution = nomadlad.minimize(blackbox_serial, parameters)
 
     solution_value = solution[3][0]
     solution_point = solution[3][1]
 
     assert np.isclose(solution_value, 2 - np.sqrt(2))
     assert np.all(np.isclose(solution_point, np.sqrt(2)))
-
-    solution = nomadlad.minimize(blackbox_serial, parameters, multiple = True)
-
-    assert 6 == len(solution[3])
-    assert 2 == len(solution[4])
 

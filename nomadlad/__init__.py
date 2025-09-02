@@ -4,7 +4,7 @@
 #
 # Interface for NOMAD, the blackbox optimization software.
 
-def minimize (evaluator, configuration, multiple = False):
+def minimize (evaluator, configuration):
     '''
     Find global minimum using NOMAD blackbox optimizer.
 
@@ -35,10 +35,6 @@ def minimize (evaluator, configuration, multiple = False):
         Notable parameters include X0, LOWER_BOUND, UPPER_BOUND,
         BB_OUTPUT_TYPE, BB_MAX_BLOCK_SIZE, and MAX_BB_EVAL.
 
-    multiple : bool
-        Indication whether multiple results should be returned in the case when
-        multiple equally good solutions are found.
-
     Returns
     -------
     Returns a quintuple with the result.
@@ -50,15 +46,13 @@ def minimize (evaluator, configuration, multiple = False):
         with possible values { -6, -5, -4, -3, -2, -1, 0, 1 }
     (3) eval_count : int
         determines the number of blackbox evaluations
-    (4) best_feasible is 
-        - either (best_value, best_point) tuple (if multiple = 0),
-        - a list of these tuples (if multiple = 1) or 
-        - None if there was no feasible solution found.
+    (4) best_feasible is either a (best_value, best_point) tuple or None if
+        there was no feasible solution found
     (5) best_infeasible behaves like best_feasible
     '''
 
     from ._nomadlad_bridge import minimize as _minimize
-    return _minimize(evaluator, configuration, multiple)
+    return _minimize(evaluator, configuration)
 
 '''
 Version of the NOMAD bridge library.

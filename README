@@ -16,9 +16,9 @@ Acknowledgements
 
 Building (Prerequisites)
 
-  - Python 3 (tested with version 3.12.4)
-  - Compiled NOMAD with static libraries (tested with version 4.4.0) 
-  - GCC release that supports at least C++17 (tested with version 14.1.1)
+  - Python 3 (tested with version 3.13.7)
+  - Compiled NOMAD with static libraries (tested with version 4.5.1) 
+  - GCC release that supports at least C++17 (tested with version 15.2.1)
   - Exported the NOMAD_PATH environment variable
 
 Building (A minimal build of NOMAD)
@@ -26,14 +26,14 @@ Building (A minimal build of NOMAD)
   This is a considerably condensed version of the official installation guide
   adapted to the purpose of manually building this module.
 
-  (Step 1) Download and extract the v4.4.0 release of NOMAD somewhere.
+  (Step 1) Download and extract the v4.5.1 release of NOMAD somewhere.
 
-    wget https://github.com/bbopt/nomad/archive/refs/tags/v.4.4.0.tar.gz
-    tar -zxf v.4.4.0.tar.gz
+    wget https://github.com/bbopt/nomad/archive/refs/tags/v.4.5.1.tar.gz
+    tar -zxf v.4.5.1.tar.gz
 
-  (Step 2) Enter the nomad-v.4.4.0 directory
+  (Step 2) Enter the nomad-v.4.5.1 directory
 
-    cd nomad-v.4.4.0
+    cd nomad-v.4.5.1
 
   (Step 3) Export path to the current directory (needed for the final step)
 
@@ -57,7 +57,7 @@ Building (A minimal build of NOMAD)
     (Option A) Install directly from a tagged commit
 
       pip install --user --upgrade \
-        git+https://github.com/jan-provaznik/nomadlad.git@v1.0.0
+        git+https://github.com/jan-provaznik/nomadlad.git@v1.1.0
 
     (Option B) Build from a locally cloned repository. Enter the repository first.
 

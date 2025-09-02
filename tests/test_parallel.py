@@ -28,18 +28,11 @@ def test_blackbox_parallel ():
 
     with concurrent.futures.ProcessPoolExecutor(2) as executor:
         evaluator = functools.partial(executor.map, blackbox_single_point)
-        solution = nomadlad.minimize(evaluator, parameters, multiple = False) 
+        solution = nomadlad.minimize(evaluator, parameters)
 
     solution_value = solution[3][0]
     solution_point = solution[3][1]
 
     assert np.isclose(solution_value, 2 - np.sqrt(2))
     assert np.all(np.isclose(solution_point, np.sqrt(2)))
-
-    with concurrent.futures.ProcessPoolExecutor(2) as executor:
-        evaluator = functools.partial(executor.map, blackbox_single_point)
-        solution = nomadlad.minimize(evaluator, parameters, multiple = True) 
-
-    assert 6 == len(solution[3])
-    assert 2 == len(solution[4])
 

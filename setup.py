@@ -9,7 +9,7 @@ import setuptools
 import sys
 import os, os.path
 
-VERSION = '1.0.1'
+VERSION = '1.1.0'
 
 # Environment processing
 #
@@ -79,7 +79,7 @@ with open('./README', encoding = 'utf-8') as file:
 setuptools.setup(
     name = 'nomadlad',
     version = VERSION,
-    description = 'Interface for NOMAD 4.4.0 blackbox optimization software.',
+    description = 'Interface for NOMAD 4.5.1 blackbox optimization software.',
     long_description = README,
     long_description_content_type = 'text/plain',
     author = 'Jan Provaznik',
